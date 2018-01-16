@@ -27,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
         slider.setOnTouchListener(new View.OnTouchListener(){
             @Override
             public boolean onTouch(View view, MotionEvent unused){
-                ((TextView)view.getRootView().findViewById(R.id.sliderValue)).setText(String.valueOf(slider.getValue()));
+                ((TextView)view.getRootView().findViewById(R.id.sliderValue)).setText(String.valueOf((int)slider.getValue()));
                 return false;
             }
         });

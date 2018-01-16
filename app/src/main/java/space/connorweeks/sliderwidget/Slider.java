@@ -55,12 +55,12 @@ public class Slider extends View
         Log.d ("seek","on draw");
         super.onDraw(canvas);
 
-        if (isMoving){
+        /*if (isMoving){
             myPaint.setColor(Color.RED);
         }
         else {
             myPaint.setColor(Color.BLACK);
-        }
+        }*/
         canvas.drawCircle(circleCenter.x,circleCenter.y,radiusOfThumb,myPaint);
         drawLineFromPoints (new PointF(viewTopLeft.x, viewTopLeft.y + topMargin),
                             new PointF(viewBottomRight.x, viewTopLeft.y + topMargin),canvas,myPaint);
