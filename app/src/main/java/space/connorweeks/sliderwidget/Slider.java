@@ -84,8 +84,20 @@ public class Slider extends View
             case MotionEvent.ACTION_MOVE:
                 // get the location of the finger down.
                 if (isMoving) {
-                    circleCenter.x = event.getX();
+                    if (event.getX() < viewTopLeft.x+radiusOfThumb){
+                        circleCenter.x = viewTopLeft.x+radiusOfThumb;
+                    }
+                    else if (event.getX() > viewBottomRight.x-radiusOfThumb){
+                        circleCenter.x = viewBottomRight.x-radiusOfThumb;
+                    }
+                    else{
+                        circleCenter.x = event.getX();
+                    }
                     circleCenter.y = viewTopLeft.y + topMargin;
+                    value = (maxValue - minValue) *
+                            ((circleCenter.x - (viewTopLeft.x+radiusOfThumb))
+                            / ((viewBottomRight.x-radiusOfThumb) - (viewTopLeft.x+radiusOfThumb)));
+                    System.out.println(value);
                 }
                 // draw it on the screen.
                 break;
@@ -103,7 +115,7 @@ public class Slider extends View
         return (double) radiusOfThumb + 4 > Math.sqrt(Math.pow(touchLocation.x - circleCenter.x, 2) + Math.pow(touchLocation.y - circleCenter.y, 2));
     }
 
-    private float getValue(){
+    public float getValue(){
         return value;
     }
 }
