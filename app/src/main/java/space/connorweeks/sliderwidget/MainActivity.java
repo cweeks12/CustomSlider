@@ -3,13 +3,10 @@ package space.connorweeks.sliderwidget;
 import android.annotation.SuppressLint;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.MotionEvent;
-import android.view.View;
-import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements Slider.SliderListener{
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -19,19 +16,18 @@ public class MainActivity extends AppCompatActivity {
 
         //instantiate my two thumbed seekbar.
         final Slider slider = new Slider(this);
+        slider.registerAsListener(this);
 
         // add it to the layout.
         FrameLayout layout = (FrameLayout) findViewById (R.id.seekbar_placeholder);
         layout.addView(slider);
 
-        slider.setOnTouchListener(new View.OnTouchListener(){
-            @Override
-            public boolean onTouch(View view, MotionEvent unused){
-                ((TextView)view.getRootView().findViewById(R.id.sliderValue)).setText(String.valueOf((int)slider.getValue()));
-                return false;
-            }
-        });
+    }
 
+    @Override
+    public void onValueChanged(int value, Slider slider){
+        // Update the seekbar
+        ((TextView)findViewById(R.id.sliderValue)).setText(String.valueOf(value));
     }
 
 }

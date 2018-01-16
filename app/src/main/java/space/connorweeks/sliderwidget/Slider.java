@@ -9,6 +9,8 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
+import java.util.ArrayList;
+
 /**
  * Created by mike on 6/14/2017.
  * see https://github.com/anothem/android-range-seek-bar/blob/master/rangeseekbar/src/main/java/org/florescu/android/rangeseekbar/RangeSeekBar.java
@@ -16,6 +18,10 @@ import android.view.View;
 
 public class Slider extends View
 {
+
+    public interface SliderListener {
+        public void onValueChanged(int value, Slider slider);
+    }
 
     private PointF circleCenter;
     private PointF viewTopLeft;
@@ -28,10 +34,14 @@ public class Slider extends View
     private float maxValue = 100;
     Paint myPaint;
 
+    private ArrayList<SliderListener> listeners;
+
     public Slider(Context context) {
         super(context);
         viewTopLeft = new PointF(this.getLeft(),this.getRight());
         viewBottomRight = new PointF(this.getRight(),this.getBottom());
+
+        listeners = new ArrayList<>();
 
         myPaint = new Paint();
         myPaint.setColor(0xff101010);
@@ -98,6 +108,9 @@ public class Slider extends View
                             ((circleCenter.x - (viewTopLeft.x+radiusOfThumb))
                             / ((viewBottomRight.x-radiusOfThumb) - (viewTopLeft.x+radiusOfThumb)));
                     System.out.println(value);
+                    for (SliderListener l : listeners){
+                        l.onValueChanged((int)value, this);
+                    }
                 }
                 // draw it on the screen.
                 break;
@@ -113,6 +126,10 @@ public class Slider extends View
 
     private boolean touchedInsideTheCircle(PointF touchLocation){
         return (double) radiusOfThumb + 4 > Math.sqrt(Math.pow(touchLocation.x - circleCenter.x, 2) + Math.pow(touchLocation.y - circleCenter.y, 2));
+    }
+
+    public void registerAsListener(SliderListener listener){
+        listeners.add(listener);
     }
 
     public float getValue(){
