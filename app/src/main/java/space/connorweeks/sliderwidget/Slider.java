@@ -2,12 +2,9 @@ package space.connorweeks.sliderwidget;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Point;
 import android.graphics.PointF;
-import android.graphics.Typeface;
-import android.support.v4.view.MotionEventCompat;
-import android.support.v7.widget.AppCompatImageView;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -23,17 +20,29 @@ public class Slider extends View
     private PointF circleCenter;
     private PointF viewTopLeft;
     private PointF viewBottomRight;
+    private float radiusOfThumb;
+    private float topMargin;
+    private boolean isMoving = false;
+    private float value;
+    private float minValue = 0;
+    private float maxValue = 100;
     Paint myPaint;
 
     public Slider(Context context) {
         super(context);
-        circleCenter = new PointF(0f,0f);
         viewTopLeft = new PointF(this.getLeft(),this.getRight());
         viewBottomRight = new PointF(this.getRight(),this.getBottom());
+
         myPaint = new Paint();
         myPaint.setColor(0xff101010);
         myPaint.setAntiAlias(true);
         myPaint.setTextSize(90f);
+
+        radiusOfThumb = 50f;
+        topMargin = 10f+ radiusOfThumb;
+
+        circleCenter = new PointF(viewTopLeft.x + radiusOfThumb,viewTopLeft.y+topMargin);
+
         invalidate();
     }
 
@@ -46,8 +55,15 @@ public class Slider extends View
         Log.d ("seek","on draw");
         super.onDraw(canvas);
 
-        canvas.drawCircle(circleCenter.x,circleCenter.y,50f,myPaint);
-        drawLineFromPoints (viewTopLeft, viewBottomRight,canvas,myPaint);
+        if (isMoving){
+            myPaint.setColor(Color.RED);
+        }
+        else {
+            myPaint.setColor(Color.BLACK);
+        }
+        canvas.drawCircle(circleCenter.x,circleCenter.y,radiusOfThumb,myPaint);
+        drawLineFromPoints (new PointF(viewTopLeft.x, viewTopLeft.y + topMargin),
+                            new PointF(viewBottomRight.x, viewTopLeft.y + topMargin),canvas,myPaint);
 
     }
 
@@ -61,16 +77,33 @@ public class Slider extends View
     {
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
+                if (!touchedInsideTheCircle(new PointF(event.getX(), event.getY()))){
+                    break;
+                }
+                isMoving = true;
             case MotionEvent.ACTION_MOVE:
                 // get the location of the finger down.
-                circleCenter.x = event.getX();
-                circleCenter.y = event.getY();
+                if (isMoving) {
+                    circleCenter.x = event.getX();
+                    circleCenter.y = viewTopLeft.y + topMargin;
+                }
                 // draw it on the screen.
                 break;
+            case MotionEvent.ACTION_UP:
+                isMoving = false;
+
         }
 
 
         invalidate(); // make sure we force a redraw.
         return true;
+    }
+
+    private boolean touchedInsideTheCircle(PointF touchLocation){
+        return (double) radiusOfThumb + 4 > Math.sqrt(Math.pow(touchLocation.x - circleCenter.x, 2) + Math.pow(touchLocation.y - circleCenter.y, 2));
+    }
+
+    private float getValue(){
+        return value;
     }
 }
