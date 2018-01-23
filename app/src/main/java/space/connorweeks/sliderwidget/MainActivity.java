@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity implements Slider.SliderListener{
 
     @SuppressLint("ClickableViewAccessibility")
@@ -15,7 +17,7 @@ public class MainActivity extends AppCompatActivity implements Slider.SliderList
         setContentView(R.layout.activity_main);
 
         //instantiate my two thumbed seekbar.
-        final Slider slider = new Slider(this);
+        final Slider slider = new Slider(this, 70f, 3, 19f, 59f);
         slider.registerAsListener(this);
 
         // add it to the layout.
@@ -25,9 +27,13 @@ public class MainActivity extends AppCompatActivity implements Slider.SliderList
     }
 
     @Override
-    public void onValueChanged(int value, Slider slider){
+    public void onValueChanged(List<Float> values, Slider slider){
         // Update the seekbar
-        ((TextView)findViewById(R.id.sliderValue)).setText(String.valueOf(value));
+        String newValue = String.valueOf((int)values.get(0).floatValue());
+        for (int i = 1; i < values.size(); i++){
+            newValue += String.valueOf(",\t" + (int)values.get(i).floatValue());
+        }
+        ((TextView)findViewById(R.id.sliderValue)).setText(newValue);
     }
 
 }

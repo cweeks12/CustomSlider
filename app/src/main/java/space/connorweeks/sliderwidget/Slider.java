@@ -4,12 +4,14 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.graphics.PointF;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by mike on 6/14/2017.
@@ -19,39 +21,52 @@ import java.util.ArrayList;
 public class Slider extends View
 {
 
+    private float epsilon = 4;
+
     public interface SliderListener {
-        public void onValueChanged(int value, Slider slider);
+        public void onValueChanged(List<Float> values, Slider slider);
     }
 
-    private PointF circleCenter;
+    private List<PointF> circleCenters;
     private PointF viewTopLeft;
     private PointF viewBottomRight;
+    private Integer selectedCircle = null;
+
+
+
     private float radiusOfThumb;
     private float topMargin;
-    private boolean isMoving = false;
-    private float value;
-    private float minValue = 0;
-    private float maxValue = 100;
+    private List<Float> values;
+    private float minValue;
+    private float maxValue;
     Paint myPaint;
 
     private ArrayList<SliderListener> listeners;
 
-    public Slider(Context context) {
+    public Slider(Context context, float thumbRadius, int numberOfThumbs, float minValue, float maxValue) {
         super(context);
-        viewTopLeft = new PointF(this.getLeft(),this.getRight());
+        viewTopLeft = new PointF(this.getLeft(),this.getTop());
         viewBottomRight = new PointF(this.getRight(),this.getBottom());
 
         listeners = new ArrayList<>();
 
         myPaint = new Paint();
-        myPaint.setColor(0xff101010);
+        myPaint.setColor(Color.BLACK);
         myPaint.setAntiAlias(true);
-        myPaint.setTextSize(90f);
 
-        radiusOfThumb = 50f;
-        topMargin = 10f+ radiusOfThumb;
+        radiusOfThumb = thumbRadius;
+        topMargin = epsilon + radiusOfThumb;
 
-        circleCenter = new PointF(viewTopLeft.x + radiusOfThumb,viewTopLeft.y+topMargin);
+        this.minValue = minValue;
+        this.maxValue = maxValue;
+
+        circleCenters = new ArrayList<>();
+        values = new ArrayList<>();
+
+        for (int i=0; i < numberOfThumbs; i++){
+            values.add(minValue);
+            circleCenters.add(new PointF(viewTopLeft.x + radiusOfThumb + i * 2 * radiusOfThumb,viewTopLeft.y+topMargin));
+        }
 
         invalidate();
     }
@@ -63,15 +78,14 @@ public class Slider extends View
         viewTopLeft = new PointF(this.getLeft(),this.getTop());
         viewBottomRight = new PointF(this.getRight(),this.getBottom());
         Log.d ("seek","on draw");
+        System.out.println(viewBottomRight);
+        System.out.println(viewTopLeft);
+
         super.onDraw(canvas);
 
-        /*if (isMoving){
-            myPaint.setColor(Color.RED);
+        for (PointF p : circleCenters) {
+            canvas.drawCircle(p.x, p.y, radiusOfThumb, myPaint);
         }
-        else {
-            myPaint.setColor(Color.BLACK);
-        }*/
-        canvas.drawCircle(circleCenter.x,circleCenter.y,radiusOfThumb,myPaint);
         drawLineFromPoints (new PointF(viewTopLeft.x, viewTopLeft.y + topMargin),
                             new PointF(viewBottomRight.x, viewTopLeft.y + topMargin),canvas,myPaint);
 
@@ -79,7 +93,6 @@ public class Slider extends View
 
     private void drawLineFromPoints(PointF viewTopLeft, PointF viewBottomRight, Canvas canvas, Paint myPaint) {
         canvas.drawLine(viewTopLeft.x,viewTopLeft.y,viewBottomRight.x,viewBottomRight.y,myPaint);
-
     }
 
     @Override
@@ -87,36 +100,33 @@ public class Slider extends View
     {
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                if (!touchedInsideTheCircle(new PointF(event.getX(), event.getY()))){
-                    break;
-                }
-                isMoving = true;
+                selectedCircle = getSelectedCircle(event.getX(), event.getY());
+                break;
             case MotionEvent.ACTION_MOVE:
                 // get the location of the finger down.
-                if (isMoving) {
+                if (selectedCircle != null) {
                     if (event.getX() < viewTopLeft.x+radiusOfThumb){
-                        circleCenter.x = viewTopLeft.x+radiusOfThumb;
+                        circleCenters.get(selectedCircle).x = viewTopLeft.x+radiusOfThumb;
                     }
                     else if (event.getX() > viewBottomRight.x-radiusOfThumb){
-                        circleCenter.x = viewBottomRight.x-radiusOfThumb;
+                        circleCenters.get(selectedCircle).x = viewBottomRight.x-radiusOfThumb;
                     }
                     else{
-                        circleCenter.x = event.getX();
+                        circleCenters.get(selectedCircle).x = event.getX();
                     }
-                    circleCenter.y = viewTopLeft.y + topMargin;
-                    value = (maxValue - minValue) *
-                            ((circleCenter.x - (viewTopLeft.x+radiusOfThumb))
-                            / ((viewBottomRight.x-radiusOfThumb) - (viewTopLeft.x+radiusOfThumb)));
-                    System.out.println(value);
+                    circleCenters.get(selectedCircle).y = viewTopLeft.y + topMargin;
+                    values.set(selectedCircle, minValue + (maxValue - minValue) *
+                            ((circleCenters.get(selectedCircle).x - (viewTopLeft.x+radiusOfThumb))
+                            / ((viewBottomRight.x-radiusOfThumb) - (viewTopLeft.x+radiusOfThumb))));
                     for (SliderListener l : listeners){
-                        l.onValueChanged((int)value, this);
+                        l.onValueChanged(values, this);
                     }
                 }
                 // draw it on the screen.
                 break;
             case MotionEvent.ACTION_UP:
-                isMoving = false;
-
+                selectedCircle = null;
+                break;
         }
 
 
@@ -124,15 +134,54 @@ public class Slider extends View
         return true;
     }
 
+    private double getDistanceFromCircle(float x, float y, PointF circleLocation){
+        return Math.sqrt(Math.pow(x - circleLocation.x, 2) + Math.pow(y - circleLocation.y, 2));
+    }
+
+    private Integer getSelectedCircle(float x, float y) {
+
+        double minimumDistance = 99;
+        Integer returnValue = null;
+        for (int i = 0; i < circleCenters.size(); i++) {
+            double distance = getDistanceFromCircle(x, y, circleCenters.get(i));
+            if (distance < minimumDistance && distance < radiusOfThumb + epsilon) {
+                minimumDistance = distance;
+                returnValue = i;
+            }
+        }
+        return returnValue;
+    }
+
     private boolean touchedInsideTheCircle(PointF touchLocation){
-        return (double) radiusOfThumb + 4 > Math.sqrt(Math.pow(touchLocation.x - circleCenter.x, 2) + Math.pow(touchLocation.y - circleCenter.y, 2));
+        return true;
     }
 
     public void registerAsListener(SliderListener listener){
         listeners.add(listener);
     }
 
-    public float getValue(){
-        return value;
+    public float getRadiusOfThumb() {
+        return radiusOfThumb;
+    }
+
+    public void setRadiusOfThumb(float radiusOfThumb) {
+        this.radiusOfThumb = radiusOfThumb;
+        invalidate();
+    }
+
+    public float getMinValue() {
+        return minValue;
+    }
+
+    public void setMinValue(float minValue) {
+        this.minValue = minValue;
+    }
+
+    public float getMaxValue() {
+        return maxValue;
+    }
+
+    public void setMaxValue(float maxValue) {
+        this.maxValue = maxValue;
     }
 }
