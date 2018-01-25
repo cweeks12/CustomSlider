@@ -17,7 +17,7 @@ public class MainActivity extends AppCompatActivity implements Slider.SliderList
         setContentView(R.layout.activity_main);
 
         //instantiate my two thumbed seekbar.
-        final Slider slider = new Slider(this, 70f, 3f, 3, 19f, 59f);
+        final Slider slider = new Slider(this, 30f, 3f, 3, 19f, 59f, 50f);
         slider.registerAsListener(this);
 
         // add it to the layout.

@@ -32,6 +32,8 @@ public class Slider extends View
     private PointF viewBottomRight;
     private Integer selectedCircle = null;
 
+    private float percentageOfScreen;
+
 
 
     private float radiusOfThumb;
@@ -44,7 +46,8 @@ public class Slider extends View
 
     private ArrayList<SliderListener> listeners;
 
-    public Slider(Context context, float thumbRadius, float verticalPadding, int numberOfThumbs, float minValue, float maxValue) {
+    public Slider(Context context, float thumbRadius, float verticalPadding, int numberOfThumbs, float minValue, float maxValue
+                        , float screenPercent) {
         super(context);
         viewTopLeft = new PointF(this.getLeft(),this.getTop());
         viewBottomRight = new PointF(this.getRight(),this.getBottom());
@@ -70,6 +73,7 @@ public class Slider extends View
             circleCenters.add(new PointF(viewTopLeft.x + radiusOfThumb ,viewTopLeft.y+topMargin));
         }
 
+        percentageOfScreen = screenPercent;
         invalidate();
     }
 
@@ -77,7 +81,7 @@ public class Slider extends View
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec){
         int width = 200;
         if ( MeasureSpec.getMode(widthMeasureSpec) != MeasureSpec.UNSPECIFIED ){
-            width = MeasureSpec.getSize(widthMeasureSpec);
+            width = (int) (MeasureSpec.getSize(widthMeasureSpec) * percentageOfScreen / 100);
         }
 
         int height = (int) (radiusOfThumb * 2f + verticalPadding * 2);
