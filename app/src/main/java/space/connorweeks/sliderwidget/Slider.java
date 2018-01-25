@@ -39,11 +39,12 @@ public class Slider extends View
     private List<Float> values;
     private float minValue;
     private float maxValue;
+    private float verticalPadding;
     Paint myPaint;
 
     private ArrayList<SliderListener> listeners;
 
-    public Slider(Context context, float thumbRadius, int numberOfThumbs, float minValue, float maxValue) {
+    public Slider(Context context, float thumbRadius, float verticalPadding, int numberOfThumbs, float minValue, float maxValue) {
         super(context);
         viewTopLeft = new PointF(this.getLeft(),this.getTop());
         viewBottomRight = new PointF(this.getRight(),this.getBottom());
@@ -55,6 +56,7 @@ public class Slider extends View
         myPaint.setAntiAlias(true);
 
         radiusOfThumb = thumbRadius;
+        this.verticalPadding = verticalPadding;
         topMargin = epsilon + radiusOfThumb;
 
         this.minValue = minValue;
@@ -65,10 +67,24 @@ public class Slider extends View
 
         for (int i=0; i < numberOfThumbs; i++){
             values.add(minValue);
-            circleCenters.add(new PointF(viewTopLeft.x + radiusOfThumb + i * 2 * radiusOfThumb,viewTopLeft.y+topMargin));
+            circleCenters.add(new PointF(viewTopLeft.x + radiusOfThumb ,viewTopLeft.y+topMargin));
         }
 
         invalidate();
+    }
+
+    @Override
+    public void onMeasure(int widthMeasureSpec, int heightMeasureSpec){
+        int width = 200;
+        if ( MeasureSpec.getMode(widthMeasureSpec) != MeasureSpec.UNSPECIFIED ){
+            width = MeasureSpec.getSize(widthMeasureSpec);
+        }
+
+        int height = (int) (radiusOfThumb * 2f + verticalPadding * 2);
+        if ( MeasureSpec.getMode(heightMeasureSpec) != MeasureSpec.UNSPECIFIED ){
+            height = MeasureSpec.getSize(heightMeasureSpec);
+        }
+        setMeasuredDimension(width, height);
     }
 
 
