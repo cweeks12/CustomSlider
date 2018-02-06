@@ -114,22 +114,14 @@ public class Slider extends View
     {
         viewTopLeft = new PointF(this.getLeft(),this.getTop());
         viewBottomRight = new PointF(this.getRight(),this.getBottom());
-        Log.d ("seek","on draw");
-        System.out.println(viewBottomRight);
-        System.out.println(viewTopLeft);
 
         super.onDraw(canvas);
 
         for (PointF p : circleCenters) {
             canvas.drawCircle(p.x, p.y, radiusOfThumb, myPaint);
         }
-        drawLineFromPoints (new PointF(viewTopLeft.x, viewTopLeft.y + topMargin),
-                            new PointF(viewBottomRight.x, viewTopLeft.y + topMargin),canvas,myPaint);
 
-        drawLineFromPoints(viewTopLeft, viewBottomRight, canvas, myPaint);
-
-        canvas.drawArc(-this.getRight(), this.getTop(), this.getRight(), this.getBottom()*2, 270f, 90f, true, linePaint);
-
+        canvas.drawArc(-this.getRight(), this.getTop(), this.getRight(), this.getBottom()*2, 270f, 90f, false, linePaint);
     }
 
     private void drawLineFromPoints(PointF viewTopLeft, PointF viewBottomRight, Canvas canvas, Paint myPaint) {
